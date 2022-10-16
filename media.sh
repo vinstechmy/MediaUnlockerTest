@@ -343,4 +343,4 @@ else
     echo -e "${Font_SkyBlue}The current host does not support IPV6, skip...${Font_Suffix}";
 fi
 
-echo -e "\n${Font_Green}Finished Test${Font_Suffix}\n"
+echo -e "${Font_Green}Finished Test${Font_Suffix}"
