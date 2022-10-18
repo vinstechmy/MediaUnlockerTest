@@ -115,45 +115,29 @@ function MediaUnlockTest_Netflix() {
     return;
 }
 
-function MediaUnlockTest_DisneyPlus() {
-    echo -n -e " DisneyPlus\t\t\t\t->\c";
-    local result=$(curl -${1} --user-agent "${UA_Browser}" -sSL "https://global.edge.bamgrid.com/token" 2>&1);
-    
-    if [[ "$result" == "curl"* ]];then
-        echo -n -e "\r DisneyPlus\t\t\t\t: ${Font_Red}Failed (Network Connection)${Font_Suffix}\n"
-        return;
+function MediaUnlockTest_HotStar() {
+    echo -n -e " HotStar:\t\t\t\t->\c"
+    local result=$(curl $useNIC $xForward --user-agent "${UA_Browser}" -${1} ${ssll} -fsL --write-out %{http_code} --output /dev/null --max-time 10 "https://api.hotstar.com/o/v1/page/1557?offset=0&size=20&tao=0&tas=20")
+    if [ "$result" = "000" ]; then
+        echo -n -e "\r HotStar:\t\t\t\t${Font_Red}Failed (Network Connection)${Font_Suffix}\n"
+        return
+    elif [ "$result" = "401" ]; then
+        local region=$(curl $useNIC $xForward --user-agent "${UA_Browser}" -${1} ${ssll} -sI "https://www.hotstar.com" | grep 'geo=' | sed 's/.*geo=//' | cut -f1 -d",")
+        local site_region=$(curl $useNIC $xForward -${1} ${ssll} -s -o /dev/null -L --max-time 10 -w '%{url_effective}\n' "https://www.hotstar.com" | sed 's@.*com/@@' | tr [:lower:] [:upper:])
+        if [ -n "$region" ] && [ "$region" = "$site_region" ]; then
+            echo -n -e "\r HotStar:\t\t\t\t${Font_Green}Yes (Region: $region)${Font_Suffix}\n"
+            return
+        else
+            echo -n -e "\r HotStar:\t\t\t\t${Font_Red}No${Font_Suffix}\n"
+            return
+        fi
+    elif [ "$result" = "475" ]; then
+        echo -n -e "\r HotStar:\t\t\t\t${Font_Red}No${Font_Suffix}\n"
+        return
+    else
+        echo -n -e "\r HotStar:\t\t\t\t${Font_Red}Failed${Font_Suffix}\n"
     fi
-	
-	local previewcheck=$(curl -s -o /dev/null -L --max-time 10 -w '%{url_effective}\n' "https://disneyplus.com" | grep preview 2>&1);
-	if [ -n "${previewcheck}" ];then
-		echo -n -e "\r DisneyPlus\t\t\t\t: ${Font_Red}No${Font_Suffix}\n"
-		return;
-	fi	
-		
-    
-	local result=$(curl -${1} -s --user-agent "${UA_Browser}" -H "Content-Type: application/x-www-form-urlencoded" -H "${Disney_Header}" -d ''${Disney_Auth}'' -X POST  "https://global.edge.bamgrid.com/token" 2>&1)
-	local access_token=$(PharseJSON "${result}" "access_token")
 
-    if [[ "$access_token" == "null" ]]; then
-		echo -n -e "\r DisneyPlus\t\t\t\t: ${Font_Red}No${Font_Suffix}\n"
-		return;
-	fi
-	
-	region=$(curl -${1} -s https://www.disneyplus.com | grep 'region: ' | awk '{print $2}')
-	if [ -n "$region" ]; then
-		echo -n -e "\r DisneyPlus\t\t\t\t: ${Font_Green}Yes(Region: ${region})${Font_Suffix}\n"
-		return;
-	else
-		local website=$(curl -${1} --user-agent "${UA_Browser}" -fs --write-out '%{redirect_url}\n' --output /dev/null "https://www.disneyplus.com")
-		if [[ "${website}" == "https://disneyplus.disney.co.jp/" ]]; then
-			echo -n -e "\r DisneyPlus\t\t\t\t: ${Font_Green}Yes(Region: JP)${Font_Suffix}\n"
-			return;
-		else
-			#local region=$(echo ${website} | cut -f4 -d '/' | tr 'a-z' 'A-Z')
-			echo -n -e "\r DisneyPlus\t\t\t\t: ${Font_Green}Yes(Region: Unknow)${Font_Suffix}\n"
-			return;
-		fi
-	fi
 }
 
 function MediaUnlockTest_iQiyi(){
@@ -288,7 +272,7 @@ function MediaUnlockTest() {
 function global() {
 	echo -e "\n \033[1;37m${Font_Purple}-- Global --${Font_Suffix}\033[0m"
 	MediaUnlockTest_Netflix ${1};
-	MediaUnlockTest_DisneyPlus ${1};
+	MediaUnlockTest_HotStar ${1};
 	MediaUnlockTest_YouTube ${1};
 	MediaUnlockTest_TikTok ${1};
 	MediaUnlockTest_iQiyi ${1};
