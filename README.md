@@ -1,6 +1,7 @@
 # MediaUnlockerTest
+1.Type nf selepas install untuk check netflix content <br>
 ```
-bash <(curl -sSL "https://raw.githubusercontent.com/vinstechmy/MediaUnlockerTest/main/media.sh")
+wget -q -O /usr/bin/nf https://raw.githubusercontent.com/vinstechmy/MediaUnlockerTest/main/media.sh && chmod +x /usr/bin/nf
 ```
 </b>
 <p align="center">
